@@ -13,6 +13,7 @@ struct bond_v4App: App {
     @StateObject var authViewModel = AuthenticationViewModel()
     @StateObject private var agentAPI = AgentAPI()
     @StateObject private var audioPlayerService = AudioPlayerService()
+    @StateObject private var speechToTextService = SpeechToTextService()
 
     var body: some Scene {
         WindowGroup {
@@ -20,6 +21,7 @@ struct bond_v4App: App {
             .environmentObject(authViewModel)
             .environmentObject(agentAPI)
             .environmentObject(audioPlayerService)
+            .environmentObject(speechToTextService)
             .onAppear {
                 GIDSignIn.sharedInstance.restorePreviousSignIn { user, error in
                     if let user = user, let idToken = user.idToken?.tokenString {

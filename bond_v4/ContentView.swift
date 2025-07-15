@@ -10,29 +10,29 @@ import GoogleSignInSwift
 
 struct ContentView: View {
     @EnvironmentObject var authViewModel: AuthenticationViewModel
+    @EnvironmentObject var agentAPI: AgentAPI
     var body: some View {
         return Group {
           NavigationView {
             switch authViewModel.state {
             case .signedIn:
               UserProfileView()
-                .navigationTitle(
-                  NSLocalizedString(
-                    "User Profile",
-                    comment: "User profile navigation title"
-                  ))
+                .navigationTitle("User Profile")
             case .signedOut:
               SignInView()
-                .navigationTitle(
-                  NSLocalizedString(
-                    "Sign-in with Google",
-                    comment: "Sign-in navigation title"
-                  ))
+                .navigationTitle("Sign-in with Google")
             }
           }
-          #if os(iOS)
           .navigationViewStyle(StackNavigationViewStyle())
-          #endif
+          .alert("Error", isPresented: .constant(agentAPI.errorMessage != nil), actions: {
+              Button("OK") {
+                  // Tapping OK will clear the error message to dismiss the alert.
+                  agentAPI.errorMessage = nil
+              }
+          }, message: {
+              // Display the error message from the AgentAPI.
+              Text(agentAPI.errorMessage ?? "An unknown error occurred.")
+          })
         }
     }
 }

@@ -10,11 +10,23 @@ import GoogleSignIn
 
 @main
 struct bond_v4App: App {
-    @StateObject var authViewModel = AuthenticationViewModel()
-    @StateObject private var agentAPI = AgentAPI()
-    @StateObject private var audioPlayerService = AudioPlayerService()
-    @StateObject private var speechToTextService = SpeechToTextService()
-
+    @StateObject private var authViewModel: AuthenticationViewModel
+    @StateObject private var audioPlayerService: AudioPlayerService
+    @StateObject private var speechToTextService: SpeechToTextService
+    @StateObject private var agentAPI: AgentAPI
+    
+    
+    init() {
+        let authVM = AuthenticationViewModel()
+        let audioPlayer = AudioPlayerService()
+        let speechService = SpeechToTextService()
+        let agent = AgentAPI()
+        
+        _authViewModel = StateObject(wrappedValue: authVM)
+        _audioPlayerService = StateObject(wrappedValue: audioPlayer)
+        _speechToTextService = StateObject(wrappedValue: speechService)
+        _agentAPI = StateObject(wrappedValue: agent)
+    }
     var body: some Scene {
         WindowGroup {
           ContentView()

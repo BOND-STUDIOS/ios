@@ -6,27 +6,14 @@
 //
 
 
-
 import SwiftUI
 import GoogleSignIn
 
 final class AuthenticationViewModel: ObservableObject {
     @Published var state: State
-    private var authenticator: GoogleSignInAuthenticator {
-        return GoogleSignInAuthenticator(authViewModel: self)
-    }
-    
-    // --- This computed property remains the same ---
-    var authorizedScopes: [String] {
-        switch state {
-        case .signedIn(let user, _): // Update to ignore the new idToken value
-            return user.grantedScopes ?? []
-        case .signedOut:
-            return []
-        }
-    }
-    
-    // ✅ ADD THIS: A computed property to safely access the idToken
+
+    private let authenticator = GoogleSignInAuthenticator()
+   
     var idToken: String? {
         switch state {
         case .signedIn(_, let idToken):
@@ -47,15 +34,33 @@ final class AuthenticationViewModel: ObservableObject {
 
     // --- These methods remain the same ---
     func signIn() {
-        authenticator.signIn()
+        authenticator.signIn { [weak self] result in
+            DispatchQueue.main.async {
+                switch result{
+                case .success(let (user, idToken)):
+                    self?.state = .signedIn(user: user, idToken: idToken)
+                case .failure(let error):
+                    print("Sign-in error: \(error.localizedDescription)")
+                    self?.state = .signedOut
+                }
+            }
+        }
     }
 
     func signOut() {
         authenticator.signOut()
+        self.state = .signedOut
     }
 
     func disconnect() {
-        authenticator.disconnect()
+        authenticator.disconnect { [weak self] error in
+            if let error = error {
+                print("Error disconnecting: \(error.localizedDescription)")
+            }
+            DispatchQueue.main.async {
+                self?.signOut()
+            }
+        }
     }
 }
 

@@ -7,16 +7,21 @@
 import Foundation
 import GoogleSignIn
 
-final class GoogleSignInAuthenticator: ObservableObject {
-    private var authViewModel: AuthenticationViewModel
 
-    init(authViewModel: AuthenticationViewModel) {
-      self.authViewModel = authViewModel
+final class GoogleSignInAuthenticator: ObservableObject {
+
+    enum AuthenticationError: Error{
+        case noRootViewController
+        case signInError(Error)
+        case noUser
+        case tokenRefreshError(Error)
+        case nonceMismatch
+        case tokenError
     }
     
-    func signIn() {
+    func signIn(completion: @escaping (Result<(user: GIDGoogleUser, idToken: String), Error>) -> Void) {
             guard let rootViewController = UIApplication.shared.windows.first?.rootViewController else {
-                print("There is no root view controller!")
+                completion(.failure(AuthenticationError.noRootViewController))
                 return
             }
             let manualNonce = UUID().uuidString
@@ -27,16 +32,25 @@ final class GoogleSignInAuthenticator: ObservableObject {
                 additionalScopes: nil,
                 nonce: manualNonce
             ) { signInResult, error in
-                guard let user = signInResult?.user else {
-                    print("Error! \(String(describing: error))")
+                if let error = error{
+                    completion(.failure(AuthenticationError.signInError(error)))
+                    return
+                }
+                guard let user = signInResult?.user else{
+                    completion(.failure(AuthenticationError.noUser))
                     return
                 }
 
                 // 1. Refresh the token to ensure it's not expired
                 user.refreshTokensIfNeeded { refreshedUser, refreshError in
-                    guard refreshError == nil, let user = refreshedUser else {
-                        print("Error refreshing token: \(String(describing: refreshError))")
-                        DispatchQueue.main.async { self.authViewModel.state = .signedOut }
+                    if let refreshError = refreshError {
+                        completion(.failure(AuthenticationError.tokenRefreshError(refreshError)))
+                        return
+                    }
+                    
+            
+                    guard let user = refreshedUser else {
+                        completion(.failure(AuthenticationError.noUser))
                         return
                     }
 
@@ -44,36 +58,31 @@ final class GoogleSignInAuthenticator: ObservableObject {
                     guard let idToken = user.idToken?.tokenString,
                           let returnedNonce = self.decodeNonce(fromJWT: idToken),
                           returnedNonce == manualNonce else {
-                        assertionFailure("ERROR: Returned nonce doesn't match manual nonce!")
-                        DispatchQueue.main.async { self.authViewModel.state = .signedOut }
+                        completion(.failure(AuthenticationError.nonceMismatch))
                         return
                     }
-
+                    completion(.success((user: user, idToken: idToken)))
                     // 3. All checks passed, update the state with the user and the token
-                    DispatchQueue.main.async {
-                        self.authViewModel.state = .signedIn(user: user, idToken: idToken)
                     }
                 }
             }
-        }
     /// Signs out the current user.
     func signOut() {
       GIDSignIn.sharedInstance.signOut()
-      authViewModel.state = .signedOut
     }
 
     /// Disconnects the previously granted scope and signs the user out.
-    func disconnect() {
-      GIDSignIn.sharedInstance.disconnect { error in
-        if let error = error {
-          print("Encountered error disconnecting scope: \(error).")
-        }
-        self.signOut()
-      }
+    func disconnect(completion: @escaping (Error?) -> Void) {
+        GIDSignIn.sharedInstance.disconnect(completion: completion)
     }
+
+        }
     
-    
-}
+
+
+
+
+
 
 private extension GoogleSignInAuthenticator {
   func decodeNonce(fromJWT jwt: String) -> String? {

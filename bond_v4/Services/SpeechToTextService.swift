@@ -87,6 +87,8 @@ class SpeechToTextService: ObservableObject {
         
         recognitionRequest?.endAudio()
         recognitionTask?.cancel()
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+
         
         self.recognitionRequest = nil
         self.recognitionTask = nil

@@ -206,6 +206,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				47D8382E2E1CC68500FB53D5 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				471C77922E21C0D400EC5AC5 /* XCRemoteSwiftPackageReference "swift-collections" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 47D837FD2E1CC15200FB53D5 /* Products */;
@@ -574,6 +575,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		471C77922E21C0D400EC5AC5 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-collections.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.0;
+			};
+		};
 		47D8382E2E1CC68500FB53D5 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";

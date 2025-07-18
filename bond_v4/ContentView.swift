@@ -16,8 +16,20 @@ struct ContentView: View {
           NavigationView {
             switch authViewModel.state {
             case .signedIn:
-              TaskView()
-                .navigationTitle("User Profile")
+                TabView {
+                            // The first tab is our new Task List
+                            TaskListView()
+                                .tabItem {
+                                    Label("My Tasks", systemImage: "list.bullet.clipboard")
+                                }
+                            
+                            // The second tab is the original task creation view, which you named TaskView
+                            TaskView()
+                                .tabItem {
+                                    Label("Create", systemImage: "plus.circle.fill")
+                                }
+                        }
+//                .navigationTitle("User Profile")
             case .signedOut:
               SignInView()
                 .navigationTitle("Sign-in with Google")

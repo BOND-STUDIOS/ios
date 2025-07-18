@@ -16,7 +16,7 @@ struct ContentView: View {
           NavigationView {
             switch authViewModel.state {
             case .signedIn:
-              UserProfileView()
+              TaskView()
                 .navigationTitle("User Profile")
             case .signedOut:
               SignInView()

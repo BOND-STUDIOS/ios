@@ -1,10 +1,11 @@
+////
+////  TaskListView.swift
+////  bond_v4
+////
+////  Created by CJ Sanchez on 7/18/25.
+////
 //
-//  TaskListView.swift
-//  bond_v4
 //
-//  Created by CJ Sanchez on 7/18/25.
-//
-
 //import SwiftUI
 //
 //struct TaskListView: View {
@@ -32,6 +33,8 @@
 //                    }
 //                    .tabViewStyle(.page(indexDisplayMode: .automatic))
 //                    .indexViewStyle(.page(backgroundDisplayMode: .always))
+//                    // --- INJECT THE VIEWMODEL INTO THE ENVIRONMENT ---
+//                    .environmentObject(viewModel)
 //                }
 //            }
 //            .navigationTitle("My Tasks")
@@ -46,8 +49,10 @@
 //                }
 //            }
 //            .onAppear {
-//                // Fetch tasks when the view first appears
-//                viewModel.fetchAllTasks()
+//                // Fetch tasks when the view first appears, but only if the list is empty
+//                if viewModel.taskTrees.isEmpty {
+//                    viewModel.fetchAllTasks()
+//                }
 //            }
 //        }
 //    }
@@ -74,11 +79,18 @@ struct TaskListView: View {
                     // This TabView creates the paged, horizontal scrolling effect
                     TabView {
                         ForEach(viewModel.taskTrees) { tree in
-                            TaskFamilyView(tree: tree)
+                            // We wrap the TaskFamilyView in a ScrollView to handle
+                            // potentially long lists of subtasks within a single card.
+                            ScrollView {
+                                TaskFamilyView(tree: tree)
+                                    .padding(.top)
+                            }
                         }
                     }
                     .tabViewStyle(.page(indexDisplayMode: .automatic))
                     .indexViewStyle(.page(backgroundDisplayMode: .always))
+                    // --- INJECT THE VIEWMODEL INTO THE ENVIRONMENT ---
+                    .environmentObject(viewModel)
                 }
             }
             .navigationTitle("My Tasks")

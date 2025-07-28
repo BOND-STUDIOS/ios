@@ -157,6 +157,8 @@ import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 import FirebaseFunctions
+import Combine
+
 
 class TaskManager: ObservableObject {
     
@@ -165,7 +167,7 @@ class TaskManager: ObservableObject {
     private var db = Firestore.firestore()
     private lazy var functions = Functions.functions(region: "us-east1")
     private var listenerRegistration: ListenerRegistration?
-    
+    let taskUpdatedPublisher = PassthroughSubject<TaskItem, Never>()
     deinit {
         listenerRegistration?.remove()
     }
@@ -204,24 +206,22 @@ class TaskManager: ObservableObject {
     func updateTask(task: TaskItem) {
         guard let userId = Auth.auth().currentUser?.uid, let taskId = task.id else { return }
         
-        // Create a mutable copy of the task to modify it before saving.
         var taskToUpdate = task
         
-        // If the task is being marked as complete, set the timestamp.
         if taskToUpdate.isCompleted {
-            taskToUpdate.completedAt = Date() // Sets it to the current time
+            taskToUpdate.completedAt = Date()
         } else {
-            // If it's being marked incomplete, clear the timestamp.
             taskToUpdate.completedAt = nil
         }
         
         do {
-                try db.collection("users").document(userId).collection("tasks").document(taskId).setData(from: taskToUpdate)
-                // ✅ Re-schedule the notification with the potentially new date
-                NotificationManager.shared.scheduleNotification(for: taskToUpdate)
-            } catch {
-                print("Error updating task: \(error)")
-            }
+            try db.collection("users").document(userId).collection("tasks").document(taskId).setData(from: taskToUpdate)
+            // ✅ After a successful update, send the updated task through the publisher.
+            taskUpdatedPublisher.send(taskToUpdate)
+            
+        } catch {
+            print("Error updating task: \(error)")
+        }
     }
     func fetchCompletedTasks(forLast days: Int, completion: @escaping ([TaskItem]) -> Void) {
         guard let userId = Auth.auth().currentUser?.uid else {
@@ -258,40 +258,40 @@ class TaskManager: ObservableObject {
             print("Error saving review: \(error)")
         }
     }
-    func recommendTask(for energy: EnergyLevel) -> TaskItem? {
-        // 1. Get only the tasks that are not yet complete.
+    // In TaskManager.swift
+
+    // ✅ Change the function to accept the journeys array
+    func recommendTask(for energy: EnergyLevel, journeys: [Journey]) -> TaskItem? {
         let incompleteTasks = self.tasks.filter { !$0.isCompleted }
         
         var bestTask: TaskItem?
-        var highestScore = -1.0 // Start with a very low score
+        var highestScore = -1.0
 
-        // 2. Loop through every incomplete task to score it.
         for task in incompleteTasks {
             var score = 0.0
             
-            // 3. Scoring Rule: Energy Match
-            //    - Perfect match gets a big boost.
-            //    - Mismatch gets a penalty.
+            // --- Energy Match Rule ---
             if task.energyLevel == energy {
-                score += 100.0 // Perfect match
-            } else if energy == .shallow && task.energyLevel == .recharge {
-                score += 25.0 // It's okay to do a recharge task on medium energy
+                score += 100.0
             } else {
-                score -= 50.0 // Penalize energy mismatch
+                score -= 50.0
             }
             
-            // 4. Scoring Rule: Urgency
-            //    - Give points for each day closer the due date is.
+            // --- Urgency Rule ---
             if let dueDate = task.dueDate {
                 let daysUntilDue = Calendar.current.dateComponents([.day], from: Date(), to: dueDate).day ?? 0
                 if daysUntilDue < 1 {
-                    score += 200.0 // Due today or overdue! Very high priority.
+                    score += 200.0
                 } else if daysUntilDue < 7 {
-                    score += 50.0 / Double(daysUntilDue) // More points the closer it is
+                    score += 50.0 / Double(daysUntilDue)
                 }
             }
             
-            // 5. Check if this task is the new best one.
+            // ✅ New Rule: Give a bonus to tasks that are part of any journey
+            if task.journeyID != nil {
+                score += 20.0
+            }
+            
             if score > highestScore {
                 highestScore = score
                 bestTask = task
@@ -359,6 +359,21 @@ class TaskManager: ObservableObject {
             }
         }
     }
+    
+    
+    //Recommendation logic
+    func logInteraction(_ interaction: RecommendationInteraction) {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+        do {
+            // We'll store these in a new collection for the user.
+            _ = try db.collection("users").document(userId).collection("recommendationInteractions").addDocument(from: interaction)
+            print("Interaction logged successfully.")
+        } catch {
+            print("Error logging interaction: \(error)")
+        }
+    }
+    
+    
     }
     
 

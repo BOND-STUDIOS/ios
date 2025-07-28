@@ -1,18 +1,18 @@
-
 import SwiftUI
 
 struct JourneysListView: View {
-    @StateObject private var journeyManager = JourneyManager()
+    // ✅ Change this to @ObservedObject to RECEIVE the manager
+    @ObservedObject var journeyManager: JourneyManager
+    
     @State private var isShowingAddJourneyView = false
     @State private var journeyToEdit: Journey?
-        @State private var isShowingEditView = false
+    @State private var isShowingEditView = false
 
     var body: some View {
         NavigationStack {
-            // We use the '$' to get bindings to the journeys array
             Group {
                 if journeyManager.isLoading {
-                    ProgressView() // Shows a spinning loading indicator
+                    ProgressView()
                 } else if journeyManager.journeys.isEmpty {
                     ContentUnavailableView(
                         "No Journeys Yet",
@@ -21,7 +21,6 @@ struct JourneysListView: View {
                     )
                 } else {
                     List {
-                        // We now loop over the journey bindings
                         ForEach($journeyManager.journeys) { $journey in
                             NavigationLink(destination: JourneyDetailView(journeyManager: journeyManager, journey: $journey)) {
                                 VStack(alignment: .leading) {
@@ -31,24 +30,22 @@ struct JourneysListView: View {
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
                                 }
-                            }
-                            // ✅ Add the context menu
-                            .contextMenu {
-                                Button {
-                                    self.journeyToEdit = journey
-                                    self.isShowingEditView = true
-                                } label: {
-                                    Label("Edit Journey", systemImage: "pencil")
+                                .contextMenu {
+                                    Button {
+                                        self.journeyToEdit = journey
+                                        self.isShowingEditView = true
+                                    } label: {
+                                        Label("Edit Journey", systemImage: "pencil")
+                                    }
                                 }
                             }
                         }
-                        .onDelete(perform: deleteJourney) // ✅ Add this modifier
+                        .onDelete(perform: deleteJourney)
                     }
                 }
             }
-
             .navigationTitle("My Journeys")
-                        .toolbar {
+            .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: { isShowingAddJourneyView = true }) {
                         Image(systemName: "plus")
@@ -56,23 +53,26 @@ struct JourneysListView: View {
                 }
             }
             .sheet(isPresented: $isShowingAddJourneyView) {
-                AddJourneyView { newJourney in
+                // For adding, you need to pass the shared manager instance
+                AddJourneyView(journeyManager: journeyManager) { newJourney in
                     journeyManager.addJourney(newJourney)
                 }
             }
             .sheet(isPresented: $isShowingEditView) {
+                // For editing, you also need to pass the shared manager instance
                 AddJourneyView(
+                    journeyManager: journeyManager, // Pass the manager here as well
                     onSave: { updatedJourney in
                         journeyManager.updateJourney(updatedJourney)
                     },
                     journeyToEdit: journeyToEdit
                 )
             }
-            .onAppear {
-                journeyManager.fetchJourneys()
-            }
+            // ❌ Remove the .onAppear modifier from this file.
+            // The parent MainTaskView now handles fetching.
         }
     }
+
     private func deleteJourney(at offsets: IndexSet) {
         let journeysToDelete = offsets.map { journeyManager.journeys[$0] }
         for journey in journeysToDelete {

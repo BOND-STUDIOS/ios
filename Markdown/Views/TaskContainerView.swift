@@ -2,9 +2,10 @@
 import SwiftUI
 
 struct TasksContainerView: View {
-    @StateObject private var taskManager = TaskManager()
-    @ObservedObject var journeyManager: JourneyManager // ✅ Add this
-
+//    @StateObject private var taskManager = TaskManager()
+//    @ObservedObject var journeyManager: JourneyManager // ✅ Add this
+    @ObservedObject var taskManager: TaskManager
+        @ObservedObject var journeyManager: JourneyManager
     @State private var isShowingAddTaskView = false
 
     var body: some View {
@@ -28,12 +29,7 @@ struct TasksContainerView: View {
                     }
                 }
             }
-            .sheet(isPresented: $isShowingAddTaskView) {
-                // ✅ Pass the journey manager in
-                AddTaskView(journeyManager: journeyManager) { newTask in
-                    taskManager.addTask(task: newTask)
-                }
-            }
+            
             
             .sheet(isPresented: $isShowingAddTaskView) {
                 AddTaskView(journeyManager: journeyManager) { newTask in

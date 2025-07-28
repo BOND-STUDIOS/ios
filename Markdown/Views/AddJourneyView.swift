@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct AddJourneyView: View {
+    @ObservedObject var journeyManager: JourneyManager 
     var onSave: (Journey) -> Void
     @Environment(\.dismiss) var dismiss
     var journeyToEdit: Journey?

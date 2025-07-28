@@ -156,12 +156,14 @@
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth
+import FirebaseFunctions
 
 class TaskManager: ObservableObject {
     
     @Published var tasks: [TaskItem] = []
     @Published var isLoading = true // ✅ Add this
     private var db = Firestore.firestore()
+    private lazy var functions = Functions.functions(region: "us-east1")
     private var listenerRegistration: ListenerRegistration?
     
     deinit {
@@ -311,5 +313,52 @@ class TaskManager: ObservableObject {
             }
         }
     }
+//    func getMotivation(for task: TaskItem, completion: @escaping (Result<String, Error>) -> Void) {
+//            // 1. Prepare the data to send to the cloud function.
+//            //    The keys must match what the Python function expects.
+//            let taskData: [String: Any] = [
+//                "name": task.title,
+//                "description": task.description ?? "",
+//                "dueDate": task.dueDate?.formatted() ?? "No due date"
+//            ]
+//            
+//            // 2. Call the function by its name ("get_task_motivation" from your main.py).
+//            functions.httpsCallable("get_task_motivation").call(taskData) { result, error in
+//                if let error = error {
+//                    print("Error calling cloud function: \(error)")
+//                    completion(.failure(error))
+//                    return
+//                }
+//                
+//                // 3. Parse the result to get the motivational text.
+//                if let data = result?.data as? [String: Any],
+//                   let motivationText = data["motivationText"] as? String {
+//                    completion(.success(motivationText))
+//                } else {
+//                    completion(.failure(NSError(domain: "AppError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response from server."])))
+//                }
+//            }
+//        }
+    func getTaskBreakdown(for task: TaskItem, completion: @escaping (Result<[String], Error>) -> Void) {
+        let taskData: [String: Any] = [
+            "name": task.title,
+            "description": task.description ?? ""
+        ]
+        
+        functions.httpsCallable("get_task_breakdown").call(taskData) { result, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            if let data = result?.data as? [String: Any],
+               let steps = data["steps"] as? [String] {
+                completion(.success(steps))
+            } else {
+                completion(.failure(NSError(domain: "AppError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response from server."])))
+            }
+        }
+    }
+    }
     
-}
+

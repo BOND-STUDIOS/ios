@@ -11,6 +11,7 @@
 		472870602E2FFDC900FF67F8 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 4728705F2E2FFDC900FF67F8 /* FirebaseAnalytics */; };
 		472870622E2FFDC900FF67F8 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 472870612E2FFDC900FF67F8 /* FirebaseAuth */; };
 		472870642E2FFDC900FF67F8 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 472870632E2FFDC900FF67F8 /* FirebaseFirestore */; };
+		4768F6E72E31953100F978A9 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 4768F6E62E31953100F978A9 /* FirebaseFunctions */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +64,7 @@
 				472870602E2FFDC900FF67F8 /* FirebaseAnalytics in Frameworks */,
 				472870622E2FFDC900FF67F8 /* FirebaseAuth in Frameworks */,
 				472870642E2FFDC900FF67F8 /* FirebaseFirestore in Frameworks */,
+				4768F6E72E31953100F978A9 /* FirebaseFunctions in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -127,6 +129,7 @@
 				4728705F2E2FFDC900FF67F8 /* FirebaseAnalytics */,
 				472870612E2FFDC900FF67F8 /* FirebaseAuth */,
 				472870632E2FFDC900FF67F8 /* FirebaseFirestore */,
+				4768F6E62E31953100F978A9 /* FirebaseFunctions */,
 			);
 			productName = Markdown;
 			productReference = 475857452E2FEA2D001A17FE /* Markdown.app */;
@@ -428,6 +431,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Markdown/functions/venv/lib/python3.11/site-packages/google_crc32c/.dylibs",
+					"$(PROJECT_DIR)/Markdown/functions/venv/lib/python3.11/site-packages/cryptography/hazmat/bindings",
+					"$(PROJECT_DIR)/Markdown/functions/venv/lib/python3.11/site-packages/pydantic_core",
+					"$(PROJECT_DIR)/Markdown/functions/venv/lib/python3.11/site-packages/google/_upb",
+				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cj.Markdown;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -455,6 +465,13 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Markdown/functions/venv/lib/python3.11/site-packages/google_crc32c/.dylibs",
+					"$(PROJECT_DIR)/Markdown/functions/venv/lib/python3.11/site-packages/cryptography/hazmat/bindings",
+					"$(PROJECT_DIR)/Markdown/functions/venv/lib/python3.11/site-packages/pydantic_core",
+					"$(PROJECT_DIR)/Markdown/functions/venv/lib/python3.11/site-packages/google/_upb",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cj.Markdown;
@@ -604,6 +621,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 4728705E2E2FFDC900FF67F8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		4768F6E62E31953100F978A9 /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4728705E2E2FFDC900FF67F8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

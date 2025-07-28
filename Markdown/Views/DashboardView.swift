@@ -7,7 +7,7 @@ struct DashboardView: View {
 
     // This will hold the output of our engine
     @State private var recommendedTask: TaskItem?
-    
+    @State private var selectedTaskForAI: TaskItem?
     // When the user taps a button, this will trigger the recommendation
     @State private var selectedEnergy: EnergyLevel? {
         didSet {
@@ -46,11 +46,14 @@ struct DashboardView: View {
                     Text(task.title)
                         .font(.largeTitle)
                         .fontWeight(.bold)
+                    
                     Label(task.energyLevel.rawValue, systemImage: "bolt.fill")
                         .foregroundColor(.white)
                         .padding(8)
                         .background(Color.red.opacity(0.8), in: Capsule())
-                    
+                        .onTapGesture {
+                            self.selectedTaskForAI = task
+                        }
 //                    Button("Start Focus Session") { /* Action later */ }
 //                        .buttonStyle(.borderedProminent)
 //                        .padding(.top)
@@ -58,6 +61,9 @@ struct DashboardView: View {
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+                .onTapGesture {
+                                        self.selectedTaskForAI = task
+                                    }
             } else {
                 ContentUnavailableView(
                     "Select Your Energy",
@@ -84,6 +90,13 @@ struct DashboardView: View {
                 taskManager.fetchTasks() // Load all tasks when the view appears
                 journeyManager.fetchJourneys()
             }
+            .sheet(item: $selectedTaskForAI) { task in
+                            TaskAssistantView(
+                                taskManager: taskManager,
+                                journeyManager: journeyManager,
+                                task: task
+                            )
+                        }
         }
     }
 }
